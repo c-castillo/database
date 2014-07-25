@@ -1,6 +1,6 @@
 Database Cookbook
 =================
-The main highlight of this cookbook is the `database` and `database_user` resources for managing databases and database users in a RDBMS. Providers for MySQL, PostgreSQL and SQL Server are also provided, see usage documentation below.
+The main highlight of this cookbook is the `database` and `database_user` resources for managing databases and database users in a RDBMS. Providers for MySQL and SQL Server are also provided, see usage documentation below.
 
 This cookbook also contains recipes to configure mysql database masters and slaves and uses EBS for storage, integrating together with the application cookbook utilizing data bags for application related information. These recipes are written primarily to use MySQL and the Opscode mysql cookbook. Other RDBMS may be supported at a later date. This cookbook does not automatically restore database dumps, but does install tools to help with that.
 
@@ -17,23 +17,21 @@ Chef version 0.11+
 The following Opscode cookbooks are dependencies:
 
 * mysql
-* postgresql
 * xfs
 * aws
 
 
 Resources/Providers
 -------------------
-These resources aim to expose an abstraction layer for interacting with different RDBMS in a general way. Currently the cookbook ships with providers for MySQL, PostgreSQL and SQL Server. Please see specific usage in the __Example__ sections below. The providers use specific Ruby gems installed under Chef's Ruby environment to execute commands and carry out actions. These gems will need to be installed before the providers can operate correctly. Specific notes for each RDBS flavor:
+These resources aim to expose an abstraction layer for interacting with different RDBMS in a general way. Currently the cookbook ships with providers for MySQL and SQL Server. Please see specific usage in the __Example__ sections below. The providers use specific Ruby gems installed under Chef's Ruby environment to execute commands and carry out actions. These gems will need to be installed before the providers can operate correctly. Specific notes for each RDBS flavor:
 
 - MySQL: leverages the `mysql` gem which is installed as part of the `mysql-chef_gem` recipe. You must declare `include_recipe "database::mysql"` to include this in your recipe.
-- PostgreSQL: leverages the `pg` gem which is installed as part of the `postgresql::ruby` recipe. You must declare `include_recipe "database::postgresql"` to include this. 
 - SQL Server: leverages the `tiny_tds` gem which is installed as part of the `sql_server::client` recipe.
 
 This cookbook is not in charge of installing the Database Management System itself. Therefore, if you want to install MySQL, for instance, you should add `include_recipe "mysql::server"` in your recipe, or include `mysql::server` in the node run_list.
 
 ### database
-Manage databases in a RDBMS. Use the proper shortcut resource depending on your RDBMS: `mysql_database`, `postgresql_database` or `sql_server_database`.
+Manage databases in a RDBMS. Use the proper shortcut resource depending on your RDBMS: `mysql_database`, or `sql_server_database`.
 
 #### Actions
 - :create: create a named database
@@ -53,7 +51,6 @@ If you set the `:host` key to "localhost" or if you leave it blank, a socket wil
 
 #### Providers
 - `Chef::Provider::Database::Mysql`: shortcut resource `mysql_database`
-- `Chef::Provider::Database::Postgresql`: shortcut resource `postgresql_database`
 - `Chef::Provider::Database::SqlServer`: shortcut resource `sql_server_database`
 
 #### Examples
@@ -82,36 +79,7 @@ sql_server_database 'mr_softie' do
 end
 ```
 
-```ruby
-# create a postgresql database
-postgresql_database 'mr_softie' do
-  connection(
-    :host      => '127.0.0.1',
-    :port      => 5432,
-    :username  => 'postgres',
-    :password  => node['postgresql']['password']['postgres']
-  )
-  action :create
-end
-```
 
-```ruby
-# create a postgresql database with additional parameters
-postgresql_database 'mr_softie' do
-  connection(
-    :host     => '127.0.0.1',
-    :port     => 5432,
-    :username => 'postgres',
-    :password => node['postgresql']['password']['postgres']
-  )
-  template 'DEFAULT'
-  encoding 'DEFAULT'
-  tablespace 'DEFAULT'
-  connection_limit '-1'
-  owner 'postgres'
-  action :create
-end
-```
 
 ```ruby
 # Externalize conection info in a ruby hash
@@ -128,15 +96,6 @@ sql_server_connection_info = {
   :password => node['sql_server']['server_sa_password']
 }
 
-postgresql_connection_info = {
-  :host     => '127.0.0.1',
-  :port     => node['postgresql']['config']['port'],
-  :username => 'postgres',
-  :password => node['postgresql']['password']['postgres']
-}
-
-
-
 # Same create commands, connection info as an external hash
 mysql_database 'foo' do
   connection mysql_connection_info
@@ -147,13 +106,6 @@ sql_server_database 'foo' do
   connection sql_server_connection_info
   action     :create
 end
-
-postgresql_database 'foo' do
-  connection postgresql_connection_info
-  action     :create
-end
-
-
 
 # Create database, set provider in resource parameter
 database 'bar' do
@@ -168,20 +120,11 @@ database 'bar' do
   action     :create
 end
 
-database 'bar' do
-  connection postgresql_connection_info
-  provider   Chef::Provider::Database::Postgresql
-  action     :create
-end
-
-
-
 # Drop a database
 mysql_database 'baz' do
   connection mysql_connection_info
   action    :drop
 end
-
 
 
 # Query a database
@@ -191,8 +134,6 @@ mysql_database 'flush the privileges' do
   action     :query
 end
 
-
-
 # Query a database from a sql script on disk
 mysql_database 'run script' do
   connection mysql_connection_info
@@ -201,18 +142,8 @@ mysql_database 'run script' do
 end
 
 
-
-# Vacuum a postgres database
-postgresql_database 'vacuum databases' do
-  connection      postgresql_connection_info
-  database_table 'template1'
-  sql 'VACUUM FULL VERBOSE ANALYZE'
-  action :query
-end
-```
-
 ### database_user
-Manage users and user privileges in a RDBMS. Use the proper shortcut resource depending on your RDBMS: `mysql_database_user`, `postgresql_database_user`, or `sql_server_database_user`.
+Manage users and user privileges in a RDBMS. Use the proper shortcut resource depending on your RDBMS: `mysql_database_user` or `sql_server_database_user`.
 
 #### Actions
 - :create: create a user
@@ -231,7 +162,6 @@ Manage users and user privileges in a RDBMS. Use the proper shortcut resource de
 
 #### Providers
 - `Chef::Provider::Database::MysqlUser`: shortcut resource `mysql_database_user`
-- `Chef::Provider::Database::PostgresqlUser`: shortcut resource `postgresql_database_user`
 - `Chef::Provider::Database::SqlServerUser`: shortcut resource`sql_server_database_user`
 
 #### Examples
@@ -244,21 +174,12 @@ mysql_connection_info = {
   :password => node['mysql']['server_root_password']
 }
 
-postgresql_connection_info = {
-  :host     => 'localhost',
-  :port     => node['postgresql']['config']['port'],
-  :username => 'postgres',
-  :password => node['postgresql']['password']['postgres']
-}
-
 sql_server_connection_info = {
   :host     => 'localhost',
   :port     => node['sql_server']['port'],
   :username => 'sa',
   :password => node['sql_server']['server_sa_password']
 }
-
-
 
 # Create a mysql user but grant no privileges
 mysql_database_user 'disenfranchised' do
@@ -267,8 +188,6 @@ mysql_database_user 'disenfranchised' do
   action     :create
 end
 
-
-
 # Do the same but pass the provider to the database resource
 database_user 'disenfranchised' do
   connection mysql_connection_info
@@ -276,27 +195,6 @@ database_user 'disenfranchised' do
   provider   Chef::Provider::Database::MysqlUser
   action     :create
 end
-
-
-
-# Create a postgresql user but grant no privileges
-postgresql_database_user 'disenfranchised' do
-  connection postgresql_connection_info
-  password   'super_secret'
-  action     :create
-end
-
-
-
-# Do the same but pass the provider to the database resource
-database_user 'disenfranchised' do
-  connection postgresql_connection_info
-  password   'super_secret'
-  provider   Chef::Provider::Database::PostgresqlUser
-  action     :create
-end
-
-
 
 # Create a sql server user but grant no privileges
 sql_server_database_user 'disenfranchised' do
@@ -344,15 +242,6 @@ mysql_database_user 'super_user' do
   action     :grant
 end
 
-
-
-# Grant all privileges on all tables in foo db
-postgresql_database_user 'foo_user' do
-  connection    postgresql_connection_info
-  database_name 'foo'
-  privileges    [:all]
-  action        :grant
-end
 
 # grant select,update,insert privileges to all tables in foo db
 sql_server_database_user 'foo_user' do

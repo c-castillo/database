@@ -75,48 +75,6 @@ if defined?(ChefSpec)
     ChefSpec::Matchers::ResourceMatcher.new(:mysql_database_user, :grant, resource_name)
   end
 
-  # postgresql database
-  #
-  def create_postgresql_database(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database, :create, resource_name)
-  end
-
-  def drop_postgresql_database(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database, :drop, resource_name)
-  end
-
-  def query_postgresql_database(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database, :query, resource_name)
-  end
-
-  # postgresql database schema
-  #
-  def create_postgresql_database_schema(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database_schema, :create, resource_name)
-  end
-
-  def drop_postgresql_database_schema(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database_schema, :drop, resource_name)
-  end
-
-  # postgresql database user
-  #
-  def create_postgresql_database_user(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database_user, :create, resource_name)
-  end
-
-  def drop_postgresql_database_user(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database_user, :drop, resource_name)
-  end
-
-  def grant_postgresql_database_user(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database_user, :grant, resource_name)
-  end
-
-  def grant_schema_postgresql_database_user(resource_name)
-    ChefSpec::Matchers::ResourceMatcher.new(:postgresql_database_user, :grant_schema, resource_name)
-  end
-
   # sql server database
   #
   def create_sql_server_database(resource_name)
